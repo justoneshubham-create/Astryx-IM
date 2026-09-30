@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: .
+      target: backend
+    env_file:
+      - ./backend/.env.example
+    environment:
+      DATABASE_URL: sqlite:///./inventory.db
+      SECRET_KEY: replace-with-a-secure-random-secret-key
+      BACKEND_CORS_ORIGINS: '["http://localhost:5173","http://127.0.0.1:5173"]'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+    working_dir: /app/backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: .
+      target: frontend
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0 --port 5173
